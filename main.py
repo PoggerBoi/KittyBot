@@ -25,6 +25,9 @@ class MyClient(discord.Client):
         if ind is None:
             return
 
+        if len(message.content.split(' ', 1)) == 1:
+            return
+        
         content = message.content.split(' ', 1)[1]
         logging.critical("sender: " + message.author.name)
         logging.critical("message: " + content)
@@ -37,7 +40,7 @@ class MyClient(discord.Client):
                                             max_tokens=140)
         logging.critical("response time: " + str(response.response_ms))
         logging.critical(response)
-        await message.channel.send(response["choices"][0]["text"])
+        await message.channel.send(response["choices"][0]["text"].replace('\n\n', '\n'))
 
 
 client = MyClient()
