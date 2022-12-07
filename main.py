@@ -27,7 +27,7 @@ class MyClient(discord.Client):
 
         if len(message.content.split(' ', 1)) == 1:
             return
-        
+
         content = message.content.split(' ', 1)[1]
         logging.critical("sender: " + message.author.name)
         logging.critical("message: " + content)
@@ -36,11 +36,19 @@ class MyClient(discord.Client):
             print("No permissions to answer a ping")
             return
 
-        response = openai.Completion.create(model="text-curie-001", prompt=content, temperature=0.4,
-                                            max_tokens=140)
-        logging.critical("response time: " + str(response.response_ms))
-        logging.critical(response)
-        await message.channel.send(response["choices"][0]["text"].replace('\n\n', '\n'))
+        if "image" in content.lower():
+            response = openai.Image.create(prompt=content, n=1, size="1024x1024")
+            logging.critical("response time: " + str(response.response_ms))
+            logging.critical(response)
+            await message.channel.send(response['data'][0]['url'])
+        else:
+            # cheap - text-curie-001
+            # capable - text-davinci-003
+            response = openai.Completion.create(model="text-curie-001", prompt=content, temperature=0.6,
+                                                max_tokens=140, presence_penalty=1, frequency_penalty=1)
+            logging.critical("response time: " + str(response.response_ms))
+            logging.critical(response)
+            await message.channel.send(response["choices"][0]["text"].replace('\n\n', '\n'))
 
 
 client = MyClient()
