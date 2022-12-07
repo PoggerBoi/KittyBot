@@ -22,16 +22,22 @@ class MyClient(discord.Client):
             return
 
         ind = next((i for i, m in enumerate(message.mentions) if is_me(m)), None)
-        if ind is not None:
-            content = message.content.split(' ', 1)[1]
+        if ind is None:
+            return
 
-            response = openai.Completion.create(model="text-curie-001", prompt=content, temperature=0.4,
-                                                max_tokens=140)
-            logging.critical("sender: " + message.author.name)
-            logging.critical("message: " + content)
-            logging.critical("response time: " + str(response.response_ms))
-            logging.critical(response)
-            await message.channel.send(response["choices"][0]["text"])
+        content = message.content.split(' ', 1)[1]
+        logging.critical("sender: " + message.author.name)
+        logging.critical("message: " + content)
+
+        if not message.channel.permissions_for(message.mentions[ind]).send_messages:
+            print("No permissions to answer a ping")
+            return
+
+        response = openai.Completion.create(model="text-curie-001", prompt=content, temperature=0.4,
+                                            max_tokens=140)
+        logging.critical("response time: " + str(response.response_ms))
+        logging.critical(response)
+        await message.channel.send(response["choices"][0]["text"])
 
 
 client = MyClient()
